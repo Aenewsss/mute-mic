@@ -18,7 +18,8 @@ function toggleMicrophone() {
             ? `osascript -e 'set volume input volume 0'`   // 🔇 Mutar Microfone
             : `osascript -e 'set volume input volume 100'`; // 🎤 Ativar Microfone
     } else if (isWindows) {
-        command = `powershell -ExecutionPolicy Bypass -File ${path.join(__dirname, 'toggle-microphone.ps1')}`;
+        const scriptPath = path.join(__dirname, 'toggle-microphone.ps1');
+        command = `powershell -ExecutionPolicy Bypass -File "${scriptPath}"`;
     } else {
         console.error("Sistema operacional não suportado!");
         return;
