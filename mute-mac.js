@@ -20,8 +20,8 @@ function toggleMicrophone() {
     } else if (isWindows) {
         // 🔹 Para Windows - Usando nircmd (precisa estar no PATH)
         command = isMuted
-            ? `nircmd.exe mutesysvolume 1 mic`   // 🔇 Mutar Microfone
-            : `nircmd.exe mutesysvolume 0 mic`;  // 🎤 Ativar Microfone
+            ? `powershell -Command "(New-Object -ComObject WScript.Shell).SendKeys([char]173)"`  // 🔇 Mutar Microfone
+            : `powershell -Command "(New-Object -ComObject WScript.Shell).SendKeys([char]173)"`; // 🎤 Ativar Microfone
     } else {
         console.error("Sistema operacional não suportado!");
         return;
@@ -41,7 +41,8 @@ function toggleMicrophone() {
 
 app.whenReady().then(() => {
     console.log('App is ready')
-    globalShortcut.register("Command+Shift+M", toggleMicrophone);
+    if (isMac) globalShortcut.register("Command+Shift+M", toggleMicrophone);
+    else globalShortcut.register("Control+Alt+M", toggleMicrophone);
 
     const trayIcon = nativeImage.createFromPath(path.join(__dirname, 'icon.png')).resize({ width: 16, height: 16 })
 
