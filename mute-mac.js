@@ -1,6 +1,7 @@
 const { app, globalShortcut, Notification, Tray, Menu, BrowserWindow, nativeImage } = require("electron");
 const { exec } = require("child_process");
 const path = require('path');
+const os = require("os");
 
 let isMuted = false;
 let tray = null;
