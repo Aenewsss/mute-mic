@@ -1,0 +1,32 @@
+{
+  "name": "mute-mic",
+  "version": "1.0.0",
+  "productName": "Microfone Mute",
+  "main": "mute-mac.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "electron-builder": "^25.1.8",
+    "electron": "^35.0.1"
+  },
+  "build": {
+    "appId": "com.seuapp.micmuter",
+    "productName": "MicMuter",
+    "mac": {
+      "icon": "icon.icns",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
