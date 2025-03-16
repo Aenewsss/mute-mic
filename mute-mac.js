@@ -13,28 +13,67 @@ function toggleMicrophone() {
     isMuted = !isMuted;
 
     if (isMac) {
-        // 🔹 Para macOS - Usando AppleScript
-        command = isMuted
-            ? `osascript -e 'set volume input volume 0'`   // 🔇 Mutar Microfone
-            : `osascript -e 'set volume input volume 100'`; // 🎤 Ativar Microfone
+        // 🔹 Para macOS - Mutando todos os microfones corretamente com delay
+        exec("SwitchAudioSource -a -t input", (error, stdout) => {
+            if (error) {
+                console.error("Erro ao listar dispositivos de áudio:", error);
+                return;
+            }
+
+            const devices = stdout.split("\n").filter(device => device.trim() !== "" && !device.toLowerCase().trim().includes("iphone"));
+
+            console.log("Dispositivos de entrada detectados:", devices);
+            
+            function processDevice(index) {
+                if (index >= devices.length) {
+                    return;
+                }
+
+                const device = devices[index];
+                const switchCommand = `SwitchAudioSource -t input -s "${device}"`;
+
+                exec(switchCommand, (error) => {
+                    if (error) {
+                        console.error(`Erro ao alternar para o microfone ${device}:`, error);
+                    } else {
+                        console.log(`Microfone alternado para: ${device}`);
+
+                        setTimeout(() => {
+                            const volumeCommand = `osascript -e 'set volume input volume ${isMuted ? "0" : "100"}'`;
+                            exec(volumeCommand, (error) => {
+                                if (error) {
+                                    console.error(`Erro ao mutar microfone ${device}:`, error);
+                                } else {
+                                    console.log(`Microfone ${device} ${isMuted ? "mutado" : "ativado"} com sucesso.`);
+                                }
+                                processDevice(index + 1); // Processa o próximo microfone após um pequeno atraso
+                            });
+                        }, 200); // Pequeno atraso para garantir que a mudança foi aplicada antes de mutar
+                    }
+                });
+            }
+
+            processDevice(0); // Inicia a mutação dos microfones em sequência
+        });
     } else if (isWindows) {
-        const scriptPath = `"${path.join(__dirname, 'toggle-microphone.ps1')}"`; // Caminho com aspas
-        command = `powershell -ExecutionPolicy Bypass -File ${scriptPath}`;
+        // 🔹 Para Windows - Mutando todos os microfones corretamente
+        const volumeCommand = `powershell -Command "Get-AudioDevice -Playback | ForEach-Object {Set-AudioDevice -PlaybackMute ${isMuted}}"`;
+        exec(volumeCommand, (error, stdout, stderr) => {
+            if (error || stderr) {
+                console.error("Erro ao mutar microfones no Windows:", error || stderr);
+            } else {
+                console.log("Todos os microfones no Windows foram " + (isMuted ? "mutados" : "ativados"));
+            }
+        });
     } else {
         console.error("Sistema operacional não suportado!");
         return;
     }
 
-    exec(command, (error) => {
-        if (error) {
-            console.error("Erro ao alternar o microfone:", error);
-            return;
-        }
-        new Notification({
-            title: "Microfone",
-            body: isMuted ? "Microfone Mutado 🔇" : "Microfone Ativado 🎤",
-        }).show();
-    });
+    new Notification({
+        title: "Microfone",
+        body: isMuted ? "Todos os Microfones Mutados 🔇" : "Todos os Microfones Ativados 🎤",
+    }).show();
 }
 
 app.whenReady().then(() => {
@@ -53,7 +92,6 @@ app.whenReady().then(() => {
 
     tray.setToolTip("MicMuter - Clique para alternar");
     tray.setContextMenu(contextMenu);
-    // tray.on("click", toggleMicrophone); // Permite ativar/mutar clicando no ícone
 
     if (isMac) {
         app.dock.setIcon(path.join(__dirname, "icon-dock.png"));
